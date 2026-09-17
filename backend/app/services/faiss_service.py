@@ -7,7 +7,7 @@ import pandas as pd
 from app.services.embedding_service import generate_embeddings
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = PROJECT_ROOT / "data"
 
 CSV_PATH = DATA_DIR / "nptel_course_catalog.csv"

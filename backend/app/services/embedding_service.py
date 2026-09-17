@@ -11,7 +11,7 @@ MODEL_NAME = "gemini-embedding-001"
 BATCH_SIZE = 50
 DELAY_SECONDS = 22
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = PROJECT_ROOT / "data"
 EMBEDDINGS_PATH = DATA_DIR / "nptel_embeddings.npy"
 
