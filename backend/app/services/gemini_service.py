@@ -1,3 +1,4 @@
+
 import json
 import os
 
@@ -5,16 +6,51 @@ from google import genai
 from google.genai import types
 
 
-MODEL_NAME = "gemini-2.5-flash"
+# Gemini model configuration
+# Can also be overridden using the GEMINI_MODEL environment variable.
+MODEL_NAME = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
 
 
 def get_client():
     api_key = os.environ.get("GEMINI_API_KEY")
 
     if not api_key:
-        raise RuntimeError("GEMINI_API_KEY environment variable is not set.")
+        raise RuntimeError(
+            "GEMINI_API_KEY environment variable is not set."
+        )
 
     return genai.Client(api_key=api_key)
+
+
+def parse_skills_response(response, response_type: str) -> list[str]:
+    """
+    Validate and parse Gemini's JSON response.
+    """
+
+    if not response.text:
+        raise ValueError(
+            f"Gemini returned an empty response for {response_type}."
+        )
+
+    try:
+        skills = json.loads(response.text)
+    except json.JSONDecodeError as exc:
+        raise ValueError(
+            f"Gemini returned invalid JSON for {response_type}."
+        ) from exc
+
+    if not isinstance(skills, list):
+        raise ValueError(
+            f"Gemini did not return a list for {response_type}."
+        )
+
+    return list(
+        dict.fromkeys(
+            str(skill).strip()
+            for skill in skills
+            if isinstance(skill, str) and skill.strip()
+        )
+    )
 
 
 def extract_resume_skills(resume_text: str) -> list[str]:
@@ -51,12 +87,10 @@ RESUME:
         ),
     )
 
-    skills = json.loads(response.text)
-
-    if not isinstance(skills, list):
-        raise ValueError("Gemini did not return a list of skills.")
-
-    return [str(skill).strip() for skill in skills if str(skill).strip()]
+    return parse_skills_response(
+        response,
+        "resume skill extraction"
+    )
 
 
 def extract_missing_skills(
@@ -102,13 +136,7 @@ Rules:
         ),
     )
 
-    missing_skills = json.loads(response.text)
-
-    if not isinstance(missing_skills, list):
-        raise ValueError("Gemini did not return a list of missing skills.")
-
-    return [
-        str(skill).strip()
-        for skill in missing_skills
-        if str(skill).strip()
-    ]
+    return parse_skills_response(
+        response,
+        "missing skill extraction"
+    )
